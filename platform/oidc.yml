@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+  keycloak-authorization-server:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
+    hostname: keycloak-server
+    ports:
+      - "9091:9091"
+    environment:
+      - "KEYCLOAK_USER=admin"
+      - "KEYCLOAK_PASSWORD=admin"
+      - "JAVA_OPTS=-Djboss.http.port=9091"
+      - "DB_VENDOR=POSTGRES"
+      - "DB_ADDR=host.docker.internal"
+      - "DB_DATABASE=saas-template-db"
+      - "DB_USER=postgres"
+      - "DB_SCHEMA=keycloak"
+      - "DB_PASSWORD=postgres"
+    networks:
+      - ${GLOBAL_NETWORK:-keycloak}
+    depends_on:
+      - postgres

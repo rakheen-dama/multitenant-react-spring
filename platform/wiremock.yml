@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  wiremock:
+    container_name: saas-mocks
+    image: wiremock/wiremock:3.4.0
+    ports:
+      - '8081:8080'
+      - '8443:8443'
+    volumes:
+      - $PWD/wiremock:/home/wiremock
+    command:
+      - --verbose

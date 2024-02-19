@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  minio:
+    image: docker.io/bitnami/minio:2022
+    ports:
+      - '19000:9000'
+      - '19001:9001'
+    networks:
+      - ${GLOBAL_NETWORK:-minio}
+    volumes:
+      - './minio_data:/data'
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=admin
+      - MINIO_DEFAULT_BUCKETS=saas_bucket

@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  postgres:
+    image: docker.io/library/postgres:15.5
+    container_name: postgres
+    depends_on:
+      - grafana-agent
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=saas-template-db
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/create_dbs.sql
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - ${GLOBAL_NETWORK:-postgres}
