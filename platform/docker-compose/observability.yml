@@ -29,8 +29,8 @@ services:
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_DATABASE_USER=user
-      - GF_DATABASE_PASSWORD=password
+      - GF_DATABASE_USER=postgres
+      - GF_DATABASE_PASSWORD=postgres
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
     volumes:
@@ -120,7 +120,7 @@ services:
     restart: unless-stopped
     networks:
       - ${GLOBAL_NETWORK:-observability}
-      
+
 volumes:
   grafana-agent-data: { }
   grafana-data: { }

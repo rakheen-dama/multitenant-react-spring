@@ -3,7 +3,6 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/multitenant-react-spring.iml" filepath="$PROJECT_DIR$/.idea/multitenant-react-spring.iml" />
-      <module fileurl="file://$PROJECT_DIR$/saas-server/saas-server.iml" filepath="$PROJECT_DIR$/saas-server/saas-server.iml" />
     </modules>
   </component>
 </project>
