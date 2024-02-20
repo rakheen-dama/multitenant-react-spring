@@ -23,14 +23,15 @@ services:
       - loki
       - prometheus
       - tempo
+      - postgres
     ports:
       - "3000:3000"
     hostname: ${HOST_NAME:-localhost}
     environment:
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_DATABASE_USER=postgres
-      - GF_DATABASE_PASSWORD=postgres
+      - GF_DATABASE_USER=grafana
+      - GF_DATABASE_PASSWORD=grafana
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
     volumes:
@@ -100,6 +101,7 @@ services:
       - loki
       - prometheus
       - tempo
+      - postgres
     hostname: ${HOST_NAME:-localhost}
     environment:
       - AGENT_MODE=flow
@@ -107,8 +109,8 @@ services:
       - LOKI_URL=http://loki:3100/loki/api/v1/push
       - PROMETHEUS_URL=http://prometheus:9090/api/v1/write
       - TEMPO_URL=http://tempo:4317
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=grafana
+      - POSTGRES_PASSWORD=grafana
     ports:
       - "12345:12345"
       - "4317:4317"
