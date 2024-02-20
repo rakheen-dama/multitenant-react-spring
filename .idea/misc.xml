@@ -6,6 +6,7 @@
       <list>
         <option value="$PROJECT_DIR$/edge-service/pom.xml" />
         <option value="$PROJECT_DIR$/saas-server/pom.xml" />
+        <option value="$PROJECT_DIR$/subscriber-service/pom.xml" />
       </list>
     </option>
   </component>
