@@ -7,6 +7,8 @@ server:
     key-alias: localhost
 
 spring:
+  flyway:
+    enabled: true
   application:
     name: edge-service
 
@@ -16,6 +18,12 @@ spring:
         - SaveSession
         - TokenRelay
       routes:
+        - id: test
+          uri:
+            http://locahhost:8443
+          predicates:
+            - Path="/tenant
+
         - id: server-route
           uri: http://localhost:8181
           predicates:
@@ -25,9 +33,12 @@ spring:
             - AddRequestHeader=X-TenantId,{tenant}
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/tenant
-    username: tenant
-    password: tenant
+    url: jdbc:postgresql://localhost:5432/root?currentSchema=tenant
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: create
 
 logging:
   pattern:

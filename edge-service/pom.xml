@@ -27,6 +27,10 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.flywaydb</groupId>
+			<artifactId>flyway-core</artifactId>
+		</dependency>
+		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-oauth2-client</artifactId>
 		</dependency>
@@ -42,8 +46,18 @@
 			<groupId>io.opentelemetry</groupId>
 			<artifactId>opentelemetry-exporter-otlp</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>com.github.loki4j</groupId>
+			<artifactId>loki-logback-appender</artifactId>
+			<version>1.5.0-m1</version>
+			<scope>runtime</scope>
+		</dependency>
 
-<!--		Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020-->
+<!--		runtimeOnly 'com.github.loki4j:loki-logback-appender:1.5.0-m1'-->
+
+<!--		// Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020-->
+<!--		runtimeOnly 'io.netty:netty-resolver-dns-native-macos:4.1.105.Final:osx-aarch_64'-->
+<!--&lt;!&ndash;		Only on Apple Silicon. Why it's necessary: https://github.com/netty/netty/issues/11020&ndash;&gt;-->
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-resolver-dns-native-macos</artifactId>

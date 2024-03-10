@@ -1,11 +1,13 @@
 version: '3.8'
 services:
+
   postgres:
     image: postgres:15.5
     container_name: postgres
     hostname: postgres
+    depends_on:
+      - grafana-agent
     environment:
-      - POSTGRES_DB=root
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
     ports:
@@ -16,36 +18,45 @@ services:
 #      timeout: 5s
 #      retries: 5
     volumes:
-      - ./postgres/init/init.sql:/docker-entrypoint-initdb.d/init.sql
-    restart: unless-stopped
+#      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    restart: always
     networks:
-      - ${GLOBAL_NETWORK:-postgres}
+      - ${GLOBAL_NETWORK:-default}
 
-  pgadmin:
-    image: dpage/pgadmin4
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "pgadmin@b2mash.io"
-      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
+  keycloak:
+    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
+    container_name: keycloak
+    hostname: keycloak
+    command: start-dev --import-realm --metrics-enabled=true
     ports:
-      - "9999:80"
+      - "9091:9091"
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_LOGLEVEL=DEBUG
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin
+      - DB_VENDOR=POSTGRES
+      #      - DB_ADDR=host.docker.internal
+      - DB_DATABASE=root
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://postgres:5432/root
+      - KC_DB_SCHEMA=keycloak
+      - KC_DB_USERNAME=root
+      - KC_DB_PASSWORD=root
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    networks:
+      - ${GLOBAL_NETWORK:-default}
     depends_on:
-      - postgres
-
-  chroma:
-    image: ghcr.io/chroma-core/chroma:0.4.22
-    container_name: chroma
-    depends_on:
+#      - postgres
       - grafana-agent
-    ports:
-      - 8000:8000
-    environment:
-      - CHROMA_OTEL_COLLECTION_ENDPOINT=http://grafana-agent:4317
-      - CHROMA_OTEL_SERVICE_NAME=chroma
-      - CHROMA_OTEL_GRANULARITY=all
-      - ANONYMIZED_TELEMETRY=False
-    networks:
-      - ${GLOBAL_NETWORK:-observability}
-
+    links:
+      - postgres
+    restart: on-failure
+#
   grafana:
     image: docker.io/grafana/grafana-oss:10.3.1
     container_name: grafana
@@ -53,15 +64,18 @@ services:
       - loki
       - prometheus
       - tempo
-      - postgres
     ports:
       - "3000:3000"
     hostname: ${HOST_NAME:-localhost}
     environment:
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=postgres:5432
+      - GF_DATABASE_USER=root
+      - GF_DATABASE_PASSWORD=root
+      - GF_DATABASE_NAME=root
+      - GF_DATABASE_SCHEMA=grafana
       - GF_AUTH_ANONYMOUS_ENABLED=true
       - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-      - GF_DATABASE_USER=grafana
-      - GF_DATABASE_PASSWORD=grafana
       - GF_SECURITY_ADMIN_USER=user
       - GF_SECURITY_ADMIN_PASSWORD=password
     volumes:
@@ -69,9 +83,23 @@ services:
       - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./grafana/grafana.ini:/etc/grafana/grafana.ini:ro
       - grafana-data:/var/lib/grafana
-    restart: unless-stopped
+#    restart: unless-stopped
+    restart: on-failure
+    links:
+      - postgres
     networks:
-      - ${GLOBAL_NETWORK:-observability}
+      - ${GLOBAL_NETWORK:-default}
+#
+#  pgadmin:
+#    image: dpage/pgadmin4
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: "pgadmin@b2mash.io"
+#      PGADMIN_DEFAULT_PASSWORD: "pgadmin"
+#    ports:
+#      - "9999:80"
+#    depends_on:
+#      - postgres
+#
   loki:
     image: docker.io/grafana/loki:2.9.4
     container_name: loki
@@ -83,7 +111,7 @@ services:
       - ./loki/loki.yml:/etc/config/loki.yml
     restart: unless-stopped
     networks:
-      - ${GLOBAL_NETWORK:-observability}
+      - ${GLOBAL_NETWORK:-default}
 
   prometheus:
     image: quay.io/prometheus/prometheus:v2.49.1
@@ -100,7 +128,7 @@ services:
       - ./prometheus/prometheus.yml:/etc/config/prometheus.yml
     restart: unless-stopped
     networks:
-      - ${GLOBAL_NETWORK:-observability}
+      - ${GLOBAL_NETWORK:-default}
 
   tempo:
     image: docker.io/grafana/tempo:2.3.1
@@ -116,7 +144,7 @@ services:
       - ./tempo/tempo.yml:/etc/tempo-config.yml
     restart: unless-stopped
     networks:
-      - ${GLOBAL_NETWORK:-observability}
+      - ${GLOBAL_NETWORK:-default}
 
   grafana-agent:
     image: docker.io/grafana/agent:v0.39.1
@@ -131,7 +159,6 @@ services:
       - loki
       - prometheus
       - tempo
-      - postgres
     hostname: ${HOST_NAME:-localhost}
     environment:
       - AGENT_MODE=flow
@@ -139,8 +166,8 @@ services:
       - LOKI_URL=http://loki:3100/loki/api/v1/push
       - PROMETHEUS_URL=http://prometheus:9090/api/v1/write
       - TEMPO_URL=http://tempo:4317
-      - POSTGRES_USER=grafana
-      - POSTGRES_PASSWORD=grafana
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
     ports:
       - "12345:12345"
       - "4317:4317"
@@ -151,38 +178,9 @@ services:
       - grafana-agent-data:/data-agent
     restart: unless-stopped
     networks:
-      - ${GLOBAL_NETWORK:-observability}
-
-  keycloak:
-    image: quay.io/keycloak/keycloak:${KEYCLOAK_VERSION:-latest}
-    container_name: keycloak
-    hostname: keycloak
-    command: start-dev --import-realm --metrics-enabled=true
-    ports:
-      - "9091:9091"
-      - "8080:8080"
-    environment:
-      - KEYCLOAK_LOGLEVEL=DEBUG
-      - KEYCLOAK_ADMIN=admin
-      - KEYCLOAK_ADMIN_PASSWORD=admin
-      - DB_VENDOR=POSTGRES
-      #      - DB_ADDR=host.docker.internal
-      - DB_DATABASE=keycloak
-      - DB_USER=keycloak
-      - DB_PASSWORD=keycloak
-      - KC_DB=postgres
-      - KC_DB_URL=jdbc:postgresql://postgres:5432/keycloak
-      - KC_DB_SCHEMA=public
-      - KC_DB_USERNAME=keycloak
-      - KC_DB_PASSWORD=keycloak
-    volumes:
-      - ./keycloak:/opt/keycloak/data/import
-    networks:
-      - ${GLOBAL_NETWORK:-keycloak}
-    depends_on:
-      - postgres
+      - ${GLOBAL_NETWORK:-default}
 
 volumes:
   grafana-agent-data: { }
   grafana-data: { }
-#  postgres-data: { }
+  postgres-data: { }
