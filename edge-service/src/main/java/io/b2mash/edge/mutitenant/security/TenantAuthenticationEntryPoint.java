@@ -6,16 +6,18 @@ import org.springframework.security.web.server.ServerAuthenticationEntryPoint;
 import org.springframework.security.web.server.ServerRedirectStrategy;
 import org.springframework.security.web.server.savedrequest.ServerRequestCache;
 import org.springframework.security.web.server.savedrequest.WebSessionServerRequestCache;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.net.URI;
 
+@Component
 public class TenantAuthenticationEntryPoint implements ServerAuthenticationEntryPoint {
 
     private ServerRedirectStrategy redirectStrategy = new DefaultServerRedirectStrategy();
-    private  ServerRequestCache serverRequestCache = new WebSessionServerRequestCache();
+    private ServerRequestCache serverRequestCache = new WebSessionServerRequestCache();
 
     @Override
     public Mono<Void> commence(ServerWebExchange exchange, AuthenticationException ex) {
@@ -29,5 +31,10 @@ public class TenantAuthenticationEntryPoint implements ServerAuthenticationEntry
     public void setRequestCache(ServerRequestCache serverRequestCache) {
         Assert.notNull(serverRequestCache, "serverRequestCache cannot be null");
         this.serverRequestCache = serverRequestCache;
+    }
+
+    public void setRedirectStrategy(ServerRedirectStrategy redirectStrategy) {
+        Assert.notNull(redirectStrategy, "redirectStrategy cannot be null");
+        this.redirectStrategy = redirectStrategy;
     }
 }

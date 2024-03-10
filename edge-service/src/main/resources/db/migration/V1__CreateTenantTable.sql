@@ -11,3 +11,4 @@ CREATE TABLE tenant_config (
 
 ALTER TABLE tenant_config ADD CONSTRAINT uc_identifier UNIQUE (identifier);
 
+
